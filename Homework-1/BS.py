@@ -8,12 +8,16 @@
 # ID: A20229995
 # Email: oshashko@hawk.iit.edu
 
-from math import log, sqrt, exp
+__author__ = "oshashkov"
+
+import math
+from math import log, sqrt, exp, pi
 from scipy.stats import norm
 
 def bsformula(callput, S0, K, r, T, sigma, q=0.):
     """ Calculates option value, delta and vega using extended Black Scholes 
     formula for the assets with continuously compounded dividend yield
+    
     https://www.macroption.com/black-scholes-formula/
 
     Parameters
@@ -25,13 +29,16 @@ def bsformula(callput, S0, K, r, T, sigma, q=0.):
     K : float
         option strike price
     r : float
-        risk-free interest rate
+        risk-free interest rate expressed as a fraction
+        (i.e. r = 0.1 stands for 10%)
     T : float
-        time to expiration expressed in years (1 month = 1/12 = 0.08(3))
+        time to expiration expressed in years (1 month = 1/12 -> T = 0.08(3))
     sigma : float
-        volatility
-    q : float, optional
-        continuous return rate on the underlying. The default is 0
+        volatility expressed as a fraction
+        (i.e. sigma = 0.5 stands for volatility of 50%)
+    q : float, optional, the default is 0
+        Yield, continuous return rate on the underlying expressed as a fraction
+        (i.e. q = 0.05 stands for 5%)
 
     Returns
     -------
@@ -45,24 +52,44 @@ def bsformula(callput, S0, K, r, T, sigma, q=0.):
         the change in volatility of the underlying asset
 
     """
-    # TODO: check imput parameters
+    # check input parameters for NaN
+    if math.isnan(callput):
+        raise ValueError("callput argument can not be NaN")
+    if math.isnan(K):
+        raise ValueError("Strike price can not be NaN")
+    if math.isnan(S0):
+        raise  ValueError("Underlying price can not be NaN")
+    if math.isnan(r):
+        raise  ValueError("Interest rate can not be NaN")
+    if math.isnan(T):
+        raise  ValueError("Time to expiration can not be NaN")
+    if math.isnan(sigma):
+        raise  ValueError("Volatility can not be NaN")
+    if math.isnan(q):
+        raise ValueError("Yield rate can not be NaN")
     
-    call = 1
-    put = -1
-    
+    # check values of input parameters
+    if abs(callput) != 1:
+        raise ValueError("Unable to parse option type {0}".format(callput))
+    if S0 <= 0:
+        raise ValueError("Underlying price can not be zero or negative")
+    if K <= 0:
+        raise ValueError("Strike price can not be zero or negative")
+    if T <= 0:
+        raise ValueError("Expiration time can not be zero or negative")
+    if sigma <= 0:
+        raise ValueError("Volatility can not be zero or negative")
+
     d1 = (log(S0/K) + (r - q + (sigma**2)/2)*T)/(sigma*sqrt(T))
     d2 = d1 - sigma*sqrt(T)
-    if callput == call:
+
+    if callput == 1:
         optionValue = S0*exp(-q*T)*norm.cdf(d1) - K*exp(-r*T)*norm.cdf(d2)
         delta = exp(-q*T)*norm.cdf(d1)
-        vega = 0
-    elif callput == put:
+    else:
         optionValue =  K*exp(-r*T)*norm.cdf(-d2) - S0*exp(-q*T)*norm.cdf(-d1)
         delta = exp(-q*T)*(norm.cdf(d1) - 1)
-        vega = 0        
-    else:
-        raise ValueError("Unable to parse option type {0}".format(callput))
-    return (optionValue, delta, vega)
 
+    vega = S0*exp(-q*T)*sqrt(T)*(1/sqrt(2*pi))*exp((-d1**2)/2)
 
-print(bsformula(1,50,49,0.02,0.25,0.33,0.02))
+    return optionValue, delta, vega
