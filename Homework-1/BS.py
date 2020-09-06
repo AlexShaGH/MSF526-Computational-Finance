@@ -11,7 +11,7 @@
 __author__ = "oshashkov"
 
 import math
-from math import log, sqrt, exp, pi
+from math import log, sqrt, exp
 from scipy.stats import norm
 
 def bsformula(callput, S0, K, r, T, sigma, q=0.):
@@ -80,16 +80,14 @@ def bsformula(callput, S0, K, r, T, sigma, q=0.):
     if sigma <= 0:
         raise ValueError("Volatility can not be zero or negative")
 
-    d1 = (log(S0/K) + (r - q + (sigma**2)/2)*T)/(sigma*sqrt(T))
+    d1 = (log(S0/K) + (r - q + 0.5*sigma**2)*T)/(sigma*sqrt(T))
     d2 = d1 - sigma*sqrt(T)
 
-    if callput == 1:
-        optionValue = S0*exp(-q*T)*norm.cdf(d1) - K*exp(-r*T)*norm.cdf(d2)
-        delta = exp(-q*T)*norm.cdf(d1)
-    else:
-        optionValue =  K*exp(-r*T)*norm.cdf(-d2) - S0*exp(-q*T)*norm.cdf(-d1)
-        delta = exp(-q*T)*(norm.cdf(d1) - 1)
+    optionValue = callput*S0*exp(-q*T)*norm.cdf(callput*d1) \
+                  - callput*K*exp(-r*T)*norm.cdf(callput*d2)
 
-    vega = S0*exp(-q*T)*sqrt(T)*(1/sqrt(2*pi))*exp((-d1**2)/2)
-
+    delta = callput*exp(-q*T)*norm.cdf(callput*d1)
+    
+    vega = S0*exp(-q*T)*sqrt(T)*norm.pdf(d1)
+    
     return optionValue, delta, vega

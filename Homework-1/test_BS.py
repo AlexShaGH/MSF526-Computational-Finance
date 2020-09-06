@@ -9,11 +9,11 @@
 # Email: oshashko@hawk.iit.edu
 
 __author__ = "oshashkov"
-
+import math
 from BS import bsformula
 
 callput = 1
-S0 = 100
+S0 = math.nan
 K = 89
 r = 0.05
 T = 0.5
