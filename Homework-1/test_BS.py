@@ -131,7 +131,7 @@ Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
 except ValueError as error:    
     print('bsformula returned ValueError: {0}\n'.format(error))
     
-print('***** Test case 4: Handling incorrect input parameters\n')
+print('***** Test case 4: Handling incorrect input parameters')
 S0 = math.nan
 K = 89
 r = 0.05
@@ -157,8 +157,8 @@ try:
 Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
 except ValueError as error:    
     print('put: bsformula returned ValueError: {0}'.format(error))
+print('')
 
-print('\n')    
 S0 = 100
 K = math.nan
 r = 0.05
@@ -184,8 +184,8 @@ try:
 Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
 except ValueError as error:    
     print('put: bsformula returned ValueError: {0}'.format(error))
+print('')
 
-print('\n')    
 S0 = 100
 K = 89
 r = math.nan
@@ -211,8 +211,8 @@ try:
 Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
 except ValueError as error:    
     print('put: bsformula returned ValueError: {0}'.format(error))
-    
-print('\n')
+print('')
+
 S0 = 100
 K = 89
 r = 0.05
@@ -238,8 +238,8 @@ try:
 Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
 except ValueError as error:    
     print('put: bsformula returned ValueError: {0}'.format(error))     
- 
-print('\n')
+print('')
+
 S0 = 100
 K = 89
 r = 0.05
@@ -265,8 +265,8 @@ try:
 Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
 except ValueError as error:    
     print('put: bsformula returned ValueError: {0}'.format(error))
-    
-print('\n')
+print('')
+
 S0 = 100
 K = 89
 r = 0.05
@@ -292,8 +292,8 @@ try:
 Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
 except ValueError as error:    
     print('put: bsformula returned ValueError: {0}'.format(error))
+print('')
 
-print('\n')
 S0 = 100
 K = 89
 r = 0.05
@@ -313,8 +313,8 @@ try:
 Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
 except ValueError as error:    
     print('bsformula returned ValueError: {0}'.format(error))
-    
-print('\n')
+print('')
+
 S0 = -1
 K = 89
 r = 0.05
@@ -333,8 +333,8 @@ try:
 Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
 except ValueError as error:    
     print('bsformula returned ValueError: {0}'.format(error))
+print('')
 
-print('\n')
 S0 = 100
 K = -1
 r = 0.05
@@ -353,8 +353,8 @@ try:
 Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
 except ValueError as error:    
     print('bsformula returned ValueError: {0}'.format(error))
-    
-print('\n')
+print('')
+
 S0 = 100
 K = 89
 r = 0.05
@@ -373,8 +373,8 @@ try:
 Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
 except ValueError as error:    
     print('bsformula returned ValueError: {0}'.format(error))
-    
-print('\n')
+print('')
+
 S0 = 100
 K = 89
 r = 0.05

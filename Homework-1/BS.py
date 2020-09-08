@@ -18,8 +18,6 @@ def bsformula(callput, S0, K, r, T, sigma, q=0.):
     """ Calculates option value, delta and vega using extended Black Scholes 
     formula for the assets with continuously compounded dividend yield
     
-    https://www.macroption.com/black-scholes-formula/
-
     Parameters
     ----------
     callput : integer
@@ -50,7 +48,6 @@ def bsformula(callput, S0, K, r, T, sigma, q=0.):
     vega : float
         Option's vega  - rate of change of the option value with respect to
         the change in volatility of the underlying asset
-
     """
     # check input parameters for NaN
     if math.isnan(callput):
