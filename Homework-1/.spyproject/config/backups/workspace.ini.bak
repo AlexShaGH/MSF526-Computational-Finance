@@ -6,5 +6,5 @@ save_non_project_files = False
 
 [main]
 version = 0.2.0
-recent_files = ['Bisect.py', 'BS.py', 'BSImplVol.py', 'test_BS.py']
+recent_files = ['Bisect.py', 'BS.py', 'BSImplVol.py', 'test_BS.py', '..\\..\\..\\..\\..\\..\\Documents\\Python\\Stocks\\stocks.py']
 

@@ -93,7 +93,7 @@ def bisect(target, function, start=None, bounds=None,
     tols : toleranse, stopping criteria, the distance between successive 
         x-values that indicate success and the difference between target 
         and the y-value that indicate success, optional
-        the default is [0.001, 0.01]
+        the default is [0.001, 0.010]
     maxiter : integer, optional
         maximum iterations the solver will be allowed, the default is 1000
 
