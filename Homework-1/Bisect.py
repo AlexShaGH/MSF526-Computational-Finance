@@ -12,8 +12,7 @@
 __author__ = "oshashkov"
 
 import math
-#from math import log, sqrt, exp
-#from typing import Callable, Iterator, Union, Optional, List
+
 
 def newton(target, function, derivfun, start, bounds=None,
            tols=[0.001, 0.010], maxiter=1000):
@@ -119,61 +118,62 @@ def bisect(target, function, start=None, bounds=None,
     fdiffs : [float,float,...]
         the set of (target - y) values at the xvals[]
     """        
-    # check input parameters
     if math.isnan(target):
         raise ValueError("target argument can not be NaN")
     if maxiter <= 0:
         raise ValueError('maxiter must be positive integer')
 
     if math.isnan(start) and bounds == None:
-        raise  ValueError("start and bounds can not be both NaN")        
+        raise  ValueError("start and bounds can not be both NaN")
+        
+    if bounds is not None:
+        upper_bound = max(bounds)
+        lower_bound = min(bounds)
+    else:
+        upper_bound = start + start
+        lower_bound = start - start
     
-    xvals = []
-    fdiffs = []
-    
-    #xval = start
-    #yval = function(xval)
-    
-    #xvals = [xval]
-    #fdiffs = [target - yval]    
+    xvals=[]
+    fdiffs=[]
     
     n = 1
     while n <= maxiter:
-        #xval = xvals[-1] - function(xvals[-1])/derivfun(xvals[-1])
+        midpoint = (upper_bound + lower_bound) / 2
+        xvals.append(midpoint)
+        fdiffs.append(target - function(midpoint))
         
-        xvals.append(xval)
-        fdiffs.append(target - function(xvals[-1]))
-
-        #if bounds is not None:#newton.__defaults__[0]:
-            #if xvals[-1] < min(bounds) or xvals[-1] > max(bounds):
-                #raise  ValueError('value x = {0} is Out of bounds {1}'.format(
-                    #xvals[-1],bounds))
-                
-        #if abs(xvals[-1]-xvals[-2])<tols[0] or abs(fdiffs[-1])<tols[1]:
-            #return xvals, fdiffs
+        if abs(upper_bound-lower_bound)/2 < tols[0] or abs(fdiffs[-1])<tols[1]:
+            return xvals, fdiffs
+        
+        if 0 < fdiffs[-1]:
+            lower_bound = midpoint
+        else:
+            upper_bound = midpoint
       
         n = n + 1
         
-    raise ValueError('Number of iterations exceeded limit:{0}'.format(maxiter))    
+    raise ValueError('Number of iterations exceeded limit:{0}'.format(maxiter))
     
     
-    
-    return xvals, fdiffs    
-
-target = 1.24
+target = 0
 y = lambda x: x**3 + 2*x**2 - 5
 dy = lambda x: 3*x**2 + 4*x
 start = 5
 tols = [0.00001,0.010]
-maxiter = 10
+maxiter = 100
 bounds = None
 
+print("********** Newton's Method *************")
 xvals, fdiffs = newton(target,y,dy,start,tols=tols,maxiter=maxiter)
 print(xvals, fdiffs)
-print(xvals[-1])
-print(fdiffs[-1])
+print('root = {0}'.format(xvals[-1]))
+print('error = {0}'.format(fdiffs[-1]))
+print('n = {0}'.format(len(xvals)))
 
-start = math.nan
 
+print("********** Bisect Method *************")
 xvals, fdiffs = bisect(target,y,start,tols=tols,maxiter=maxiter)
 print(xvals, fdiffs)
+print('root = {0}'.format(xvals[-1]))
+print('error = {0}'.format(fdiffs[-1]))
+print('n = {0}'.format(len(xvals)))

@@ -9,6 +9,7 @@
 # Email: oshashko@hawk.iit.edu
 
 __author__ = "oshashkov"
+
 import math
 from BS import bsformula
 
