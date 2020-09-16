@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# test_BS.py - Unit tests for bsformula
+# test_BS.py - Unit tests for bsformula, Newton and Bisect methods
 # MSF 526
 # Illinois Institute of Technology
 # Homework 1
@@ -12,7 +12,10 @@ __author__ = "oshashkov"
 
 import math
 from BS import bsformula
+from Newton import newton
+from Bisect import bisect
 
+"""
 print('***** Test case 1: Checking calculated results against matlab\n')
 
 S0 = 100
@@ -393,4 +396,29 @@ try:
     print('bsformula results for Call option:\nPrice = {0:.4f}\n\
 Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
 except ValueError as error:    
-    print('bsformula returned ValueError: {0}'.format(error))
+    print('bsformula returned ValueError: {0}'.format(error))"""
+    
+    
+    
+target = 0
+y = lambda x: x**3 + 2*x**2 - 5
+dy = lambda x: 3*x**2 + 4*x
+start = 5
+tols = [0.00001,0.010]
+maxiter = 1000
+bounds = [0,3]#None
+
+print("********** Newton's Method *************")
+xvals, fdiffs = newton(target,y,dy,start,tols=tols,maxiter=maxiter)
+print(xvals, fdiffs)
+print('root = {0}'.format(xvals[-1]))
+print('error = {0}'.format(fdiffs[-1]))
+print('n = {0}'.format(len(xvals)))
+
+
+print("********** Bisect Method *************")
+xvals, fdiffs = bisect(target,y,start,tols=tols,maxiter=maxiter)
+print(xvals, fdiffs)
+print('root = {0}'.format(xvals[-1]))
+print('error = {0}'.format(fdiffs[-1]))
+print('n = {0}'.format(len(xvals)))    

@@ -84,7 +84,6 @@ def bsformula(callput, S0, K, r, T, sigma, q=0.):
                   - callput*K*exp(-r*T)*norm.cdf(callput*d2)
 
     delta = callput*exp(-q*T)*norm.cdf(callput*d1)
-    
     vega = S0*exp(-q*T)*sqrt(T)*norm.pdf(d1)
     
     return optionValue, delta, vega
