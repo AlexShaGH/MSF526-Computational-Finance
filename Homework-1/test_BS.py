@@ -14,6 +14,7 @@ import math
 from BS import bsformula
 from Newton import newton
 from Bisect import bisect
+from BSImplVol import bsimpvol
 
 """
 print('***** Test case 1: Checking calculated results against matlab\n')
@@ -422,3 +423,58 @@ print(xvals, fdiffs)
 print('root = {0}'.format(xvals[-1]))
 print('error = {0}'.format(fdiffs[-1]))
 print('n = {0}'.format(len(xvals)))    
+
+
+S0 = 100
+K = 89
+r = 0.05
+T = 0.5
+sigma = .5
+q = 0.025
+
+print('Initial values:\n\
+S0={0}, K={1}, r={2}, T={3}, sigma={4}, q={5}\n'.format(S0,K,r,T,sigma,q))
+
+#mathlab results for the same initial values
+callValue_ml = 19.8433
+putValue_ml = 7.8881
+callDelta_ml = 0.6972
+putDelta_ml = -0.2903
+vega_ml = 24.0568
+
+print('Expected results:\nCall Price = {0}, Put Price = {1}\n\
+Call Delta = {2}, Put Delta = {3}\n\
+vega = {4}\n'.format(callValue_ml,putValue_ml,callDelta_ml,putDelta_ml,\
+vega_ml))
+
+callput = 1    
+try:
+    optionValue, delta, vega = bsformula(callput,S0,K,r,T,sigma,q)
+    print('bsformula results for Call option:\nPrice = {0:.4f}\n\
+Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
+except ValueError as error:    
+    print('bsformula returned ValueError: {0}\n'.format(error))
+callput = -1  
+try:
+    optionValue, delta, vega = bsformula(callput,S0,K,r,T,sigma,q)
+    print('bsformula results for Put option:\nPrice = {0:.4f}\n\
+Delta = {1:.4f}\nVega = {2:.4f}\n'.format(optionValue,delta,vega))
+except ValueError as error:    
+    print('bsformula returned ValueError: {0}\n'.format(error))
+
+callput = -1
+S0 = 100
+K = 89
+r = 0.05
+T = 0.5
+q = 0.025
+OptionPrice = 12
+
+
+impVol,callNum =  bsimpvol(callput,S0,K,r,T,OptionPrice,q,method='bisect',reportCalls=True)
+print('Implied volatility calculation using Bisect method:')
+print('implied volatility = {0},\nnumber of calls = {1}'.format(impVol,callNum))
+
+impVol,callNum =  bsimpvol(callput,S0,K,r,T,OptionPrice,q,method='newton',reportCalls=True)
+print('Implied volatility calculation using Newton method:')
+print('implied volatility = {0},\nnumber of calls = {1}'.format(impVol,callNum))
