@@ -12,7 +12,7 @@ __author__ = "oshashkov"
 
 import numpy as np
 from numpy import exp,sqrt,maximum,mean,std
-from numpy.random import randn
+from numpy.random import randn, rand
 from scipy.stats import sem
 
 # these are standard tenors for US Treasury Yield Curve as of 10/1/2020
@@ -77,78 +77,63 @@ def BSMonteCarlo(S0, K, T, sigma, checkpoints, rateCurve, samples=None):
             }
     """
     
-    #TODO: check parameters values
+    # check parameters values
+    if np.isnan(K):
+        raise ValueError("Strike price can not be NaN")
+    if np.isnan(S0):
+        raise  ValueError("Underlying price can not be NaN")
+    if np.isnan(T):
+        raise  ValueError("Time to expiration can not be NaN")
+    if np.isnan(sigma):
+        raise  ValueError("Volatility can not be NaN")
+    if rateCurve is None:
+        raise ValueError("Yield curve can not be None")
+    if checkpoints is None:
+        raise ValueError("checkpoints can not be None")        
+    
+    # check values of input parameters
+    if S0 <= 0:
+        raise ValueError("Underlying price can not be zero or negative")
+    if K <= 0:
+        raise ValueError("Strike price can not be zero or negative")
+    if T <= 0:
+        raise ValueError("Expiration time can not be zero or negative")
+    if sigma <= 0:
+        raise ValueError("Volatility can not be zero or negative")
     
     M = checkpoints[-1]
     
     # check for samples and generate them if needed
     if samples is None:
-        samples = randn(M,1)
+        samples = rand(M)
     elif len(samples) < M:
         raise ValueError('Not enough samples: {0}'.format(len(samples)))
+    else:
+        # bring the sameples into proper distribution
+        samples = samples # it's fake now - TODO
     
     # find the value of "r" for given T using rate curve
     r = InterpolateRateCurve(rateCurve,T)
+    if r is None:
+        raise ValueError('Unable to obtain r')
     
     running_means = []
     running_stds = []
     running_st_errs = []
     vals = []
-    
-    # need these totals for efficient calculation of running standar deviation
-    # see Professor Dixon's evening lecture from 09/29/2020 and 
-    # https://stackoverflow.com/questions/1174984/how-to-efficiently-calculate-a-running-standard-deviation
-    running_total_x = 0
-    running_total_x2 = 0
-    
-    start = 0
-    
+       
     for i in range(len(checkpoints)):
-        end = checkpoints[i]
-        price_samples = S0*exp((r-0.5*sigma**2)*T + sigma*sqrt(T)*samples[start:end])
-        running_total_x = running_total_x + sum(price_samples)
-        running_total_x2 = running_total_x2 + sum(price_samples**2)
-        running_means.append(running_total_x/end)
-        running_stds.append(sqrt(running_total_x2/end - running_means[-1]**2))
-        running_st_errs.append(running_stds[-1]/sqrt(end))
-        vals.extend( exp(-r*T) * maximum(0,price_samples-K))
-        start = end
-        
-    #vals = exp(-r*T) * maximum(0,price_samples-K)
-    V0=mean(vals)
-    #D=std(vals)
-    #error_est=D/sqrt(M)
-    #V0 = exp(-r*T) * maximum(0,running_means[-1]-K)
-    
+        # compute option values using MC method
+        vals = exp(-r*T) * maximum(0,S0*exp((r-0.5*sigma**2)*T 
+                + sigma*sqrt(T)*samples[:checkpoints[i]])-K)
+        #compute running means, stds and errors
+        running_means.append(mean(vals))
+        running_stds.append(std(vals))
+        running_st_errs.append(sem(vals))
     
     # return all the calculations
-    return { 'TV': V0, # The final value ( i.e. mean at checkpoints[-1] )
+    return { 'TV': running_means[-1], # The final value ( i.e. mean at checkpoints[-1] )
             'Means':  running_means,# The running mean at each checkpoint
             'StdDevs':  running_stds,# The running standard deviation at each checkpoint
             'StdErrs':  running_st_errs# The running standard error at each checkpoint
             }
-    
-
-K=110.0;
-S0=100.0
-sigma=0.4
-T=2.5
-M=1000000
-samples=randn(M-1,1)
-checkpoints = [100,500,1000,10000,100000,M]
-
-rate_curve = np.array([0.08,0.08,0.10,0.11,0.12,0.13,0.16,0.28,0.47,0.69,1.23,1.46])
-
-print(BSMonteCarlo(S0, K, T, sigma, checkpoints, rate_curve))
-print(InterpolateRateCurve(rate_curve,T))
-
-# matlab: [Call, Put] = blsprice(100,110,0.145,2.5,0.4)
-# Call = 35.4805
-# Put = 12.0333
-
-# bsformula results for Call option:
-# Price = 35.4805
-# Delta = 0.7700
-# Vega = 48.0165
-
-

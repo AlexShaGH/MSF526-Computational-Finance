@@ -11,6 +11,12 @@
 
 __author__ = "oshashkov"
 
+import numpy as np
+from numpy import exp,sqrt,maximum,mean,std
+from numpy.random import randn, rand
+from scipy.stats import sem
+from BSMonteCarlo import InterpolateRateCurve
+
 def MCStockPrices(S0, sigma, rateCurve, t, samples, integrator):
     """ Simulates stock prices using requested integrator method
     
@@ -42,5 +48,31 @@ def MCStockPrices(S0, sigma, rateCurve, t, samples, integrator):
     numpy array of simulated stock prices having the same dimensions as samples
 
     """
-    return numpy array
+    
+    # TODO: test arguments
+    
+    # TODO: calculate r
+    r = InterpolateRateCurve(rateCurve,t)
+    
+    stock_prices = np.array(0)
+    
+    # TODO: switch over integrator and simulate price
+    if integrator == 'standard':
+        # TODO
+        stock_prices =  S0*exp((r-0.5*sigma**2)*t +
+                          sigma*sqrt(t)*samples)
+    elif integrator == 'euler':
+        # TODO
+        pass
+    elif integrator == 'milstein':
+        # TODO
+        pass
+    else:
+        raise ValueError('Unknown integrator method: {0}'.format(integrator))
+    
+    # TODO: return the results
+
+   
+    
+    return stock_prices
 
