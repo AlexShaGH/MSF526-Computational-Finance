@@ -54,22 +54,28 @@ def MCStockPrices(S0, sigma, rateCurve, t, samples, integrator):
     # calculate r
     r = InterpolateRateCurve(rateCurve,t)
     
+    print('t:{0}\n'.format(t))
+    print('r:{0}\n'.format(r))
+    print('samples:{0}\n'.format(samples))
+
+    dt = t[0]          
+   
     stock_prices = np.empty(0)
-    #stock_prices = np.empty(samples.shape)
-    #stock_prices = np.empty((0,2),float)
-    #empt_array = np.empty((0,2), int)
+
     
     # switch over integrator parameters and simulate price
     if integrator == 'standard':
-        stock_prices =  S0*exp((r-0.5*sigma**2)*t +
-                          sigma*sqrt(t)*samples)
+        #stock_prices =  S0*exp((r-0.5*sigma**2)*t + sigma*sqrt(t)*samples[:,0])
+        stock_prices =  S0*exp((r-0.5*sigma**2)*t + sigma*sqrt(t)*np.transpose(samples))
+        stock_prices = np.transpose(stock_prices)
     elif integrator == 'euler':
-        # TODO
-        dt = t[0]
-        stock_prices = S0*exp(cumsum((r-0.5*sigma**2)*dt+sigma*sqrt(dt)*samples,axis=0))        
+        #stock_prices = S0*exp(cumsum((r-0.5*sigma**2)*dt+sigma*sqrt(dt)*samples,axis=0))    
+        stock_prices = S0*exp(cumsum((r-0.5*sigma**2)*dt+sigma*sqrt(dt)*np.transpose(samples),axis=0))
+        stock_prices = np.transpose(stock_prices)
     elif integrator == 'milstein':
-        # TODO
-        pass
+        #stock_prices = S0*prod(1.+(r)*dt+sigma*sqrt(dt)*samples+0.5*sigma*sigma*(samples**2*dt-dt),axis=0)
+        stock_prices = S0*prod(1.+(r)*dt+sigma*sqrt(dt)*np.transpose(samples)+0.5*sigma*sigma*(np.transpose(samples)**2*dt-dt),axis=0)
+        stock_prices = np.transpose(stock_prices)
     else:
         raise ValueError('Unknown integrator method: {0}'.format(integrator))
     
