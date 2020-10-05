@@ -35,6 +35,9 @@ def InterpolateRateCurve(curve,T,tenors=None):
     rate : float
         interpolated value of rate
     """
+    if curve is None:
+        raise ValueError("Yield curve can not be None")    
+        
     if tenors is None:
         tenors = RATE_CURVE_TENORS #assume it's constant
     if len(tenors) != len(curve):
@@ -77,7 +80,7 @@ def BSMonteCarlo(S0, K, T, sigma, checkpoints, rateCurve, samples=None):
             }
     """
     
-    # check parameters values
+    # test parameters for None and NaN
     if np.isnan(K):
         raise ValueError("Strike price can not be NaN")
     if np.isnan(S0):
