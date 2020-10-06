@@ -10,6 +10,15 @@
 
 __author__ = "oshashkov"
 
+import numpy as np
+from numpy import exp,sqrt,cumsum,cumprod,maximum,mean,std
+from numpy.random import randn 
+from scipy.stats import sem
+import matplotlib.pyplot as plt
+from BSMonteCarlo import InterpolateRateCurve
+from MCStockPrices import MCStockPrices
+
+
 def MCOptionPrices(S0, K, T, rateCurve, sigma, t, checkpoints, samples, integrator):
     """ Makes Approximation of the prices of European Options
     
@@ -32,7 +41,7 @@ def MCOptionPrices(S0, K, T, rateCurve, sigma, t, checkpoints, samples, integrat
         an ordered list of integer sample counts in the range [1,M] 
         at which to return the running mean, standard deviation, and
         estimated error
-    samples : TYPE
+    samples : array
         an array of uniform random samples to use. The length of samples 
         should be N x M where N is the number of fixing times and 
         M is the number of paths
@@ -54,8 +63,99 @@ def MCOptionPrices(S0, K, T, rateCurve, sigma, t, checkpoints, samples, integrat
             }
 
     """
-    return { 'TV': , # The final value ( i.e. mean of option price at time t_0 using NxM uniform random samples)
-            'Means': , # The running mean at each checkpoint
-            'StdDevs': , # The running standard deviation at each checkpoint
-            'StdErrs': , # The running standard error at each checkpoint
-            }
+    # TODO: check parameters
+    
+    
+###############################################    
+    
+    
+    # check for samples and generate them if needed
+    if samples is None:
+        np.random.seed(20000)
+        samples = randn(checkpoints[-1],len(t))
+    elif np.shape(samples)[0] < checkpoints[-1]:
+        raise ValueError('Not enough samples: {0}'.format(np.shape(samples)[0]))
+    
+    # find the value of "r" for given T using rate curve
+    r = InterpolateRateCurve(rateCurve,T)
+    if r is None:
+        raise ValueError('Unable to obtain r')
+    
+    running_means = []
+    running_stds = []
+    running_st_errs = []
+    vals = []
+       
+    for i in range(len(checkpoints)):
+        # compute option values using MC method
+        stock_prices = MCStockPrices(S0, sigma, rate_curve, fixing_times, samples[:,:checkpoints[i]], integrator)
+        vals = exp(-r*T) * maximum(0,stock_prices-K)
+        #compute running means, stds and errors
+        running_means.append(mean(vals))
+        running_stds.append(std(vals))
+        running_st_errs.append(sem(vals))
+    
+    results = {}
+    results['TV'] = running_means[-1]# The final value ( i.e. mean at checkpoints[-1] )
+    results['Means'] = running_means# The running mean at each checkpoint
+    results['StdDevs'] = running_stds# The running standard deviation at each checkpoint
+    results['StdErrs'] = running_st_errs# The running standard error at each checkpoint
+    
+    
+    
+    
+ ###############################################   
+    
+
+
+    return results
+
+
+
+
+
+if __name__ == '__main__':
+    # Problem 3 test:
+    rate_curve = np.array(
+        [0.08,0.08,0.10,0.11,0.12,0.13,0.16,0.28,0.47,0.69,1.23,1.46])
+
+    S0=100.0
+    K=110.0
+    T=2.5
+    sigma=0.4
+    
+    time_steps = 100
+    
+    fixing_times = np.array((T/time_steps)*np.arange(1,time_steps+1)) 
+    
+    checkpoints = 10**np.arange(2,6)
+    print('Checkpoints:\n{0}\n'.format(checkpoints))    
+    
+    N = len(fixing_times)
+    M = number_of_paths = checkpoints[-1]
+
+    np.random.seed(20000)
+    samples = randn(M,N)    
+    
+    
+    print('Parameters:\nS0 = {0}, K = {1}, T = {2}, Sigma = {3}\n'.format(
+        S0,K,T,sigma))
+      
+
+    
+    #samples = randn(checkpoints[-1])
+    str_expected_results = '''
+    # matlab: [Call, Put] = blsprice(100,110,0.145,2.5,0.4)
+    # Call = 35.4805
+    
+    # bsformula results for Call option:
+    # Price = 35.4805'''
+    
+    print("Expected results:\n{0}\n".format(str_expected_results))
+
+    integrators = ['standard','euler','milstein']    
+    for integrator in integrators:
+        output = MCOptionPrices(S0, K, T, rate_curve, sigma, fixing_times, checkpoints, samples, integrator)
+        print("Calculated results:\n")
+        for key in output.keys():
+            print('{0}:\n{1}\n'.format(key,output[key]))

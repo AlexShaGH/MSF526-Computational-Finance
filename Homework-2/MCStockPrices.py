@@ -79,7 +79,6 @@ def MCStockPrices(S0, sigma, rateCurve, t, samples, integrator):
     elif integrator == 'euler':
         stock_prices = S0*cumprod(1+r*dt+sigma*sqrt(dt)*samples,axis=1)
     elif integrator == 'milstein':
-        #stock_prices = S0*prod(1.+(r)*dt+sigma*sqrt(dt)*samples+0.5*sigma*sigma*(samples**2*dt-dt),axis=0)
         delStochCoeffdelAsset = sigma # stoch coeff is sigma*S
         stock_prices = S0*cumprod(1+r*dt+sigma*sqrt(dt)*samples
                 +0.5*sigma*delStochCoeffdelAsset*(samples**2*dt-dt),axis=1)
@@ -91,7 +90,7 @@ def MCStockPrices(S0, sigma, rateCurve, t, samples, integrator):
 
 
 if __name__ == '__main__':
-    # Problem 2:
+    # Problem 2 test:
     rate_curve = np.array(
         [0.08,0.08,0.10,0.11,0.12,0.13,0.16,0.28,0.47,0.69,1.23,1.46])        
     

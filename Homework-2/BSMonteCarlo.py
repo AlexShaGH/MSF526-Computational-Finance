@@ -143,7 +143,7 @@ def BSMonteCarlo(S0, K, T, sigma, checkpoints, rateCurve, samples=None):
 
 
 if __name__ == '__main__':
-    # Problem 1:
+    # Problem 1 test:
     rate_curve = np.array(
         [0.08,0.08,0.10,0.11,0.12,0.13,0.16,0.28,0.47,0.69,1.23,1.46])
 
