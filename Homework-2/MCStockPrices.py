@@ -12,15 +12,14 @@
 __author__ = "oshashkov"
 
 import numpy as np
-from numpy import exp,sqrt,maximum,mean,std,cumsum, prod
-from numpy.random import randn, rand
-from scipy.stats import sem
+from numpy import exp,sqrt,cumsum,cumprod
+from numpy.random import randn 
+import matplotlib.pyplot as plt
 from BSMonteCarlo import InterpolateRateCurve
 
 def MCStockPrices(S0, sigma, rateCurve, t, samples, integrator):
     """ Simulates stock prices using requested integrator method
     
-
     Parameters
     ----------
     S0 : float
@@ -49,35 +48,79 @@ def MCStockPrices(S0, sigma, rateCurve, t, samples, integrator):
 
     """
     
-    # TODO: test arguments
+    # test parameters for None and NaN
+    if np.isnan(S0):
+        raise  ValueError("Underlying price can not be NaN")
+    if np.isnan(sigma):
+        raise  ValueError("Volatility can not be NaN")
+    if rateCurve is None:
+        raise ValueError("Yield curve can not be None")
+    if t is None:
+        raise ValueError("time steps can not be None")        
     
-    # calculate r
+    # check values of input parameters
+    if S0 <= 0:
+        raise ValueError("Underlying price can not be zero or negative")
+    if sigma <= 0:
+        raise ValueError("Volatility can not be zero or negative")
+    if np.shape(t)[0] != np.shape(samples)[1]:
+        raise ValueError("samples and t are of incompatible shapes")
+    
+    # calculate rate for each step t
     r = InterpolateRateCurve(rateCurve,t)
-    
-    print('t:{0}\n'.format(t))
-    print('r:{0}\n'.format(r))
-    print('samples:{0}\n'.format(samples))
 
-    dt = t[0]          
+    dt = t[0] # assumption: timesteps are all of the same size
    
     stock_prices = np.empty(0)
 
-    
     # switch over integrator parameters and simulate price
     if integrator == 'standard':
-        #stock_prices =  S0*exp((r-0.5*sigma**2)*t + sigma*sqrt(t)*samples[:,0])
-        stock_prices =  S0*exp((r-0.5*sigma**2)*t + sigma*sqrt(t)*np.transpose(samples))
-        stock_prices = np.transpose(stock_prices)
+        stock_prices = S0*exp(cumsum((r-0.5*sigma**2)*dt+sigma*sqrt(dt)*samples,axis=1))
     elif integrator == 'euler':
-        #stock_prices = S0*exp(cumsum((r-0.5*sigma**2)*dt+sigma*sqrt(dt)*samples,axis=0))    
-        stock_prices = S0*exp(cumsum((r-0.5*sigma**2)*dt+sigma*sqrt(dt)*np.transpose(samples),axis=0))
-        stock_prices = np.transpose(stock_prices)
+        stock_prices = S0*cumprod(1+r*dt+sigma*sqrt(dt)*samples,axis=1)
     elif integrator == 'milstein':
         #stock_prices = S0*prod(1.+(r)*dt+sigma*sqrt(dt)*samples+0.5*sigma*sigma*(samples**2*dt-dt),axis=0)
-        stock_prices = S0*prod(1.+(r)*dt+sigma*sqrt(dt)*np.transpose(samples)+0.5*sigma*sigma*(np.transpose(samples)**2*dt-dt),axis=0)
-        stock_prices = np.transpose(stock_prices)
+        delStochCoeffdelAsset = sigma # stoch coeff is sigma*S
+        stock_prices = S0*cumprod(1+r*dt+sigma*sqrt(dt)*samples
+                +0.5*sigma*delStochCoeffdelAsset*(samples**2*dt-dt),axis=1)
     else:
         raise ValueError('Unknown integrator method: {0}'.format(integrator))
     
     return stock_prices
 
+
+
+if __name__ == '__main__':
+    # Problem 2:
+    rate_curve = np.array(
+        [0.08,0.08,0.10,0.11,0.12,0.13,0.16,0.28,0.47,0.69,1.23,1.46])        
+    
+    S0=100.0
+    sigma=0.2
+    T=2.5
+    time_steps = 100
+    
+    fixing_times = np.array((T/time_steps)*np.arange(1,time_steps+1))
+
+    N = len(fixing_times)
+    M = number_of_paths = 5
+
+    np.random.seed(20000)
+    samples = randn(M,N)
+    
+    print('Fixing Times:\n{0}\n'.format(fixing_times))
+    rates = InterpolateRateCurve(rate_curve,fixing_times)
+    print('Rates for time steps:\n{0}\n'.format(rates))
+    
+    integrators = ['standard','euler','milstein']
+
+    for integrator in integrators:
+        sim_prices = MCStockPrices(S0, sigma, rate_curve, fixing_times, samples, integrator)
+        print('Stock prices ({0} integrator):\n{1}\n'.format(integrator,sim_prices))
+        for index, stock_pricess in enumerate(sim_prices):
+            plt.plot(fixing_times,stock_pricess,label=index, lw=1.5)    
+        plt.grid(True)    
+        plt.xlabel('time')
+        plt.ylabel('stock price ({0})'.format(integrator))
+        plt.legend()
+        plt.show()

@@ -28,3 +28,6 @@ plt.xlabel('time step')
 plt.ylabel('index level')
 plt.show()
 
+samples = randn(7, 10)
+t = numpy.linspace(0.001,30,numpy.shape(samples)[1])
+print(numpy.shape(samples))

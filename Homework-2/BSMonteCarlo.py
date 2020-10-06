@@ -12,7 +12,7 @@ __author__ = "oshashkov"
 
 import numpy as np
 from numpy import exp,sqrt,maximum,mean,std
-from numpy.random import randn, rand
+from numpy.random import randn
 from scipy.stats import sem
 
 # these are standard tenors for US Treasury Yield Curve as of 10/1/2020
@@ -108,12 +108,9 @@ def BSMonteCarlo(S0, K, T, sigma, checkpoints, rateCurve, samples=None):
     
     # check for samples and generate them if needed
     if samples is None:
-        samples = rand(M)
+        samples = randn(M)
     elif len(samples) < M:
         raise ValueError('Not enough samples: {0}'.format(len(samples)))
-    else:
-        # bring the sameples into proper distribution
-        samples = samples # it's fake now - TODO
     
     # find the value of "r" for given T using rate curve
     r = InterpolateRateCurve(rateCurve,T)
@@ -134,9 +131,43 @@ def BSMonteCarlo(S0, K, T, sigma, checkpoints, rateCurve, samples=None):
         running_stds.append(std(vals))
         running_st_errs.append(sem(vals))
     
-    # return all the calculations
-    return { 'TV': running_means[-1], # The final value ( i.e. mean at checkpoints[-1] )
-            'Means':  running_means,# The running mean at each checkpoint
-            'StdDevs':  running_stds,# The running standard deviation at each checkpoint
-            'StdErrs':  running_st_errs# The running standard error at each checkpoint
-            }
+    results = {}
+    results['TV'] = running_means[-1]# The final value ( i.e. mean at checkpoints[-1] )
+    results['Means'] = running_means# The running mean at each checkpoint
+    results['StdDevs'] = running_stds# The running standard deviation at each checkpoint
+    results['StdErrs'] = running_st_errs# The running standard error at each checkpoint
+
+    return results
+
+
+
+
+if __name__ == '__main__':
+    # Problem 1:
+    rate_curve = np.array(
+        [0.08,0.08,0.10,0.11,0.12,0.13,0.16,0.28,0.47,0.69,1.23,1.46])
+
+    S0=100.0
+    K=110.0
+    T=2.5
+    sigma=0.4
+    print('Parameters:\nS0 = {0}, K = {1}, T = {2}, Sigma = {3}\n'.format(
+        S0,K,T,sigma))
+      
+    checkpoints = 10**np.arange(2,8)
+    print('Checkpoints:\n{0}\n'.format(checkpoints))
+    
+    samples = randn(checkpoints[-1])
+    str_expected_results = '''
+    # matlab: [Call, Put] = blsprice(100,110,0.145,2.5,0.4)
+    # Call = 35.4805
+    
+    # bsformula results for Call option:
+    # Price = 35.4805'''
+    
+    print("Expected results:\n{0}\n".format(str_expected_results))
+    
+    output = BSMonteCarlo(S0, K, T, sigma, checkpoints, rate_curve, samples)
+    print("Calculated results:\n")
+    for key in output.keys():
+        print('{0}:\n{1}\n'.format(key,output[key]))
