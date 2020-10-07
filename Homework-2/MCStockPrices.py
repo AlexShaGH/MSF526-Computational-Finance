@@ -67,7 +67,8 @@ def MCStockPrices(S0, sigma, rateCurve, t, samples, integrator):
         raise ValueError("samples and t are of incompatible shapes")
     
     # calculate rate for each step t
-    r = InterpolateRateCurve(rateCurve,t)
+    rates = InterpolateRateCurve(rateCurve,t)
+    r = rates[-1] # has to be static according to Professor and TA explanation
 
     dt = t[0] # assumption: timesteps are all of the same size
    

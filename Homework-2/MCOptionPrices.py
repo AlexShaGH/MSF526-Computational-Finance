@@ -11,7 +11,7 @@
 __author__ = "oshashkov"
 
 import numpy as np
-from numpy import exp,sqrt,cumsum,cumprod,maximum,mean,std
+from numpy import exp,maximum,mean,std
 from numpy.random import randn 
 from scipy.stats import sem
 import matplotlib.pyplot as plt
@@ -21,7 +21,6 @@ from MCStockPrices import MCStockPrices
 
 def MCOptionPrices(S0, K, T, rateCurve, sigma, t, checkpoints, samples, integrator):
     """ Makes Approximation of the prices of European Options
-    
 
     Parameters
     ----------
@@ -53,7 +52,6 @@ def MCOptionPrices(S0, K, T, rateCurve, sigma, t, checkpoints, samples, integrat
         - 'euler', to use Euler-method integration of the BlackScholes SDE
         - 'milstein', to use Milstein-method integration of the BlackScholes SDE
 
-
     Returns
     -------
     dict { 'TV': , # The final value ( i.e. mean of option price at time t_0 using NxM uniform random samples)
@@ -61,14 +59,35 @@ def MCOptionPrices(S0, K, T, rateCurve, sigma, t, checkpoints, samples, integrat
             'StdDevs': , # The running standard deviation at each checkpoint
             'StdErrs': , # The running standard error at each checkpoint
             }
-
     """
-    # TODO: check parameters
-    
-    
-###############################################    
-    
-    
+    # check parameters
+    if np.isnan(S0):
+        raise  ValueError("Underlying price can not be NaN")
+    if np.isnan(sigma):
+        raise  ValueError("Volatility can not be NaN")
+    if rateCurve is None:
+        raise ValueError("Yield curve can not be None")
+    if t is None:
+        raise ValueError("time steps can not be None")        
+    if np.isnan(K):
+        raise ValueError("Strike price can not be NaN")
+    if np.isnan(T):
+        raise  ValueError("Time to expiration can not be NaN")
+    if checkpoints is None:
+        raise ValueError("checkpoints can not be None")        
+        
+    # check values of input parameters
+    if S0 <= 0:
+        raise ValueError("Underlying price can not be zero or negative")
+    if sigma <= 0:
+        raise ValueError("Volatility can not be zero or negative")
+    if K <= 0:
+        raise ValueError("Strike price can not be zero or negative")
+    if T <= 0:
+        raise ValueError("Expiration time can not be zero or negative")
+    if np.shape(t)[0] != np.shape(samples)[1]:
+        raise ValueError("samples and t are of incompatible shapes")        
+        
     # check for samples and generate them if needed
     if samples is None:
         np.random.seed(20000)
@@ -88,8 +107,8 @@ def MCOptionPrices(S0, K, T, rateCurve, sigma, t, checkpoints, samples, integrat
        
     for i in range(len(checkpoints)):
         # compute option values using MC method
-        stock_prices = MCStockPrices(S0, sigma, rate_curve, fixing_times, samples[:,:checkpoints[i]], integrator)
-        vals = exp(-r*T) * maximum(0,stock_prices-K)
+        stock_prices = MCStockPrices(S0, sigma, rate_curve, fixing_times, samples[:checkpoints[i],:], integrator)
+        vals = exp(-r*T) * maximum(0,stock_prices[:,-1]-K)
         #compute running means, stds and errors
         running_means.append(mean(vals))
         running_stds.append(std(vals))
@@ -101,18 +120,7 @@ def MCOptionPrices(S0, K, T, rateCurve, sigma, t, checkpoints, samples, integrat
     results['StdDevs'] = running_stds# The running standard deviation at each checkpoint
     results['StdErrs'] = running_st_errs# The running standard error at each checkpoint
     
-    
-    
-    
- ###############################################   
-    
-
-
     return results
-
-
-
-
 
 if __name__ == '__main__':
     # Problem 3 test:
@@ -125,10 +133,9 @@ if __name__ == '__main__':
     sigma=0.4
     
     time_steps = 100
-    
     fixing_times = np.array((T/time_steps)*np.arange(1,time_steps+1)) 
     
-    checkpoints = 10**np.arange(2,6)
+    checkpoints = 10**np.arange(2,7)
     print('Checkpoints:\n{0}\n'.format(checkpoints))    
     
     N = len(fixing_times)
@@ -137,13 +144,9 @@ if __name__ == '__main__':
     np.random.seed(20000)
     samples = randn(M,N)    
     
-    
     print('Parameters:\nS0 = {0}, K = {1}, T = {2}, Sigma = {3}\n'.format(
         S0,K,T,sigma))
       
-
-    
-    #samples = randn(checkpoints[-1])
     str_expected_results = '''
     # matlab: [Call, Put] = blsprice(100,110,0.145,2.5,0.4)
     # Call = 35.4805
@@ -153,9 +156,49 @@ if __name__ == '__main__':
     
     print("Expected results:\n{0}\n".format(str_expected_results))
 
+    # convergance dependence on sample size
     integrators = ['standard','euler','milstein']    
     for integrator in integrators:
         output = MCOptionPrices(S0, K, T, rate_curve, sigma, fixing_times, checkpoints, samples, integrator)
-        print("Calculated results:\n")
+        print("Calculated results ({0}):\n".format(integrator))
         for key in output.keys():
             print('{0}:\n{1}\n'.format(key,output[key]))
+        plt.plot(checkpoints[:],output['StdErrs'],label=integrator, lw=1.5)    
+        plt.grid(True)    
+        plt.xscale("log")
+        plt.xlabel('Samples size')
+        plt.ylabel('StdErrs')
+        plt.legend()
+        
+    plt.show()
+    
+    # convergance dependence on time steps study
+    time_steps_study = [10, 100, 1000]
+    for integrator in integrators:    
+        for time_step in time_steps_study:
+            fixing_times = np.array((T/time_step)*np.arange(1,time_step+1)) 
+        
+            checkpoints = 10**np.arange(2,5)
+            print('Checkpoints:\n{0}\n'.format(checkpoints))    
+            
+            N = len(fixing_times)
+            M = number_of_paths = checkpoints[-1]
+        
+            np.random.seed(20000)
+            samples = randn(M,N)
+            
+            output = MCOptionPrices(S0, K, T, rate_curve, sigma, fixing_times, checkpoints, samples, integrator)
+            print("Calculated results ({0}):\n".format(integrator))
+            for key in output.keys():
+                print('{0}:\n{1}\n'.format(key,output[key]))
+            plt.plot(time_steps_study,output['StdErrs'],label='steps:{0}'.format(time_step), lw=1.5)
+            plt.grid(True)    
+            plt.xscale("log")
+            plt.xlabel('time steps')
+            plt.ylabel('StdErrs ({0})'.format(integrator))
+            plt.legend()
+        
+        plt.show()
+
+        
+    

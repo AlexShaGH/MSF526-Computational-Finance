@@ -153,6 +153,9 @@ if __name__ == '__main__':
     sigma=0.4
     print('Parameters:\nS0 = {0}, K = {1}, T = {2}, Sigma = {3}\n'.format(
         S0,K,T,sigma))
+    
+    r = InterpolateRateCurve(rate_curve,T)
+    print('Calculated r = {0}\n'.format(r))
       
     checkpoints = 10**np.arange(2,8)
     print('Checkpoints:\n{0}\n'.format(checkpoints))
