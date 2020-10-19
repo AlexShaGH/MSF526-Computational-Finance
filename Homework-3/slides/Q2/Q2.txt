@@ -1,0 +1,23 @@
+def fdEuropean(callput, S0, K, r, T, sigma, q, M, N, S_max):
+	dS = S_max/M
+	dt = T/N
+	matval = np.zeros((M+1,N+1))
+	vetS = np.linspace(0,S_max,M+1)
+	veti = np.array(range(M+1))
+	vetj = np.array(range(N+1))
+	if callput == 1:
+		matval[:,N] = np.maximum(vetS-K,0)
+		matval[0,:] = 0
+		matval[M,:] = S_max*np.exp(-q*dt*(N-vetj)) - K*np.exp(-r*dt*(N-vetj))
+	else:
+		matval[:,N] = np.maximum(K-vetS,0)
+		matval[0,:] = K*np.exp(-r*dt*(N-vetj))
+		matval[M,:] = 0
+	a = 0.5*dt*(sigma**2*veti - (r-q))*veti
+	b = 1 - dt*(sigma**2*veti**2 + (r-q))
+	c = 0.5*dt*(sigma**2*veti + (r-q))*veti
+	for j in range(N-1,-1,-1):
+		for i in range(1,M):
+			matval[i,j] = a[i]*matval[i-1,j+1] + b[i]*matval[i,j+1]+ \
+			c[i]*matval[i+1,j+1]
+	return np.exp(-q*T)*np.interp(S0, vetS, matval[:,0])

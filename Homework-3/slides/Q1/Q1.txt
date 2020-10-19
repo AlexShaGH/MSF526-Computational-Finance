@@ -1,0 +1,45 @@
+Natcha Phaphimolwat
+10:22
+In the problem 1:
+1) Ks is np.array([50,52,55,...])?
+2) Callputs is np.array([-1,1,1,-1])?
+
+In problem 2: 
+1) How to specify S_max for test the code?
+2) How q, dividend yield, affects the equation in problem 2?
+
+Rajat Dua
+23:53
+ price = bsformula(callput = callput, S0 = S0, K = K, r = r, T = T, sigma = sigma, q = q)[0]
+
+Rajat Dua
+32:41
+    payoffs = np.maximum(0, (STs[M]-Ks) if callputs==1 else (Ks-STs[M]))
+
+Natcha Phaphimolwat
+33:01
+payoffs_ = (payoffs_[:-1] * qu + payoffs[1:] * qd)
+
+Rajat Dua
+33:14
+        payoffs = (payoffs[:-1] * p + payoffs[1:] * q) * df
+
+Natcha Phaphimolwat
+33:51
+payoffs_ = (payoffs_[:-1] * qu + payoffs[1:] * qd) * df 
+
+Rajat Dua
+34:17
+    df = np.exp(-(r-q) * dt)
+
+Rajat Dua
+51:13
+    t = np.linspace(0.001,30,np.shape(samples)[1])
+
+Rajat Dua
+52:37
+    t = np.linspace(1/12, 1, 11)
+
+Rajat Dua
+54:19
+[0.1,0.2,0.5,0.7,1]
