@@ -8,6 +8,9 @@
 # Author: Oleksandr Shashkov
 # ID: A20229995
 # Email: oshashko@hawk.iit.edu
+# Code fragments from MSF526 lecture notes and notebooks used as well as 
+# materails attached to the "Mastering Python for Finance, Second Edition" by 
+# James Ma Weiming
 
 __author__ = "oshashkov"
 

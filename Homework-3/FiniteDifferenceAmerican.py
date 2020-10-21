@@ -8,6 +8,9 @@
 # Author: Oleksandr Shashkov
 # ID: A20229995
 # Email: oshashko@hawk.iit.edu
+# Code fragments from MSF526 lecture notes and notebooks used as well as 
+# materails attached to the "Mastering Python for Finance, Second Edition" by 
+# James Ma Weiming
 
 __author__ = "oshashkov"
 
@@ -161,7 +164,6 @@ def fdAmerican(callput, S0, K, r, T, sigma, q, M, N, S_max):
 
 if __name__ == '__main__':
     # Problem 3 test:
-    callput = 1
     S0 = 40
     K = 30
     r = 0.05
@@ -169,9 +171,47 @@ if __name__ == '__main__':
     sigma =  0.15
     q = 0.01
     M = 100
-    N = 100
-    S_max = 200
-
-    option = fdAmerican(callput, S0, K, r, T, sigma, q, M, N, S_max)
+    N = 1000
+    S_max = 100
     
-    print(option)            
+    print('Call option:')
+    callput = 1
+    print('Parameters:\nS0 = {0}, K = {1}, r = {2}, T = {3},\n\
+Sigma = {4}, q = {5}, M = {6}, N = {7}, S_max = {8}\n'.format(S0,K,r,T,sigma,q,M,N, S_max))
+    option = fdAmerican(callput, S0, K, r, T, sigma, q, M, N, S_max)
+    print('Calculated option value = {0}\n'.format(option))
+    
+    M = 100
+    N = 100    
+    callput = 1    
+    print('Call option:')    
+    print('Parameters:\nS0 = {0}, K = {1}, r = {2}, T = {3},\n\
+Sigma = {4}, q = {5}, M = {6}, N = {7}, S_max = {8}\n'.format(S0,K,r,T,sigma,q,M,N, S_max))
+    option = fdAmerican(callput, S0, K, r, T, sigma, q, M, N, S_max)
+    print('Calculated option value = {0}\n'.format(option))    
+
+    S0 = 45
+    K = 40
+    r = 0.05
+    T = 1
+    sigma =  0.4
+    q = 0.01
+    M = 100
+    N = 1000
+    S_max = 100
+
+    print('Put option:')
+    callput = -1
+    print('Parameters:\nS0 = {0}, K = {1}, r = {2}, T = {3},\n\
+Sigma = {4}, q = {5}, M = {6}, N = {7}, S_max = {8}\n'.format(S0,K,r,T,sigma,q,M,N, S_max))
+    option = fdAmerican(callput, S0, K, r, T, sigma, q, M, N, S_max)
+    print('Calculated option value = {0}\n'.format(option))     
+    
+    M = 30
+    N = 50     
+    print('Put option:')
+    callput = -1
+    print('Parameters:\nS0 = {0}, K = {1}, r = {2}, T = {3},\n\
+Sigma = {4}, q = {5}, M = {6}, N = {7}, S_max = {8}\n'.format(S0,K,r,T,sigma,q,M,N, S_max))
+    option = fdAmerican(callput, S0, K, r, T, sigma, q, M, N, S_max)
+    print('Calculated option value = {0}\n'.format(option))  
