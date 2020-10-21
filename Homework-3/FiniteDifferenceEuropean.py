@@ -89,7 +89,6 @@ def fdEuropean(callput, S0, K, r, T, sigma, q, M, N, S_max):
         raise ValueError("N has to be 1 or more")        
 
     dt = T / float(N) # N + 1 time values
-    #dS = S_max / float(M) # not used in explicit method
 
     # create datastructures
     i_values = np.arange(M)
@@ -136,5 +135,5 @@ if __name__ == '__main__':
     N = 1000
     S_max = 200
     
-    results = fdEuropean(callput, S0, K, r, T, sigma, q, M, N, S_max)
-    print(results)
+    option = fdEuropean(callput, S0, K, r, T, sigma, q, M, N, S_max)
+    print(option)
