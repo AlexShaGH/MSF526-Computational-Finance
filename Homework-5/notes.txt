@@ -1,0 +1,45 @@
+jump intensity parameter
+then two parameters for distribution of jump sizes:
+a_prime, b_prime, lmbda
+
+lmbda - set it between 0 an 1
+a and be between 0 and 5 or 0 an 1
+
+
+bounds_0 = [(l[0],u[0]),(l[1],u[1]),(l[2],u[2]),(l[3],u[3]),(l[4],u[4]), (l[5],u[5]),l[6],u[6]),l[7],u[7])]
+
+......
+
+print "kappa=" + str(opt[0][0]) 
+print "theta=" + str(opt[0][1]) 
+print "sigma=" + str(opt[0][2]) 
+print "rho=" + str(opt[0][3]) 
+print "v0=" + str(opt[0][4])
+#print 3 additional parameters that were introduced
+print "a=" + str(opt[0][5])
+print "b=" + str(opt[0][6])
+print "lmbda=" + str(opt[0][7])
+
+
+Number of options 32
+Final RMSE Value:  0.27944912704494923
+kappa=4.813092247458216
+theta=0.001416430610550523
+sigma=0.20508731502473987
+rho=0.839602404518407
+v0=0.09211833565510608
+a=3.7209520187860665
+b=4.99999999
+lmbda=0.0030729342056976527
+
+
+Number of options 32
+Final RMSE Value:  0.0589613392247067
+kappa=4.518931151824766
+theta=0.026887813365317204
+sigma=0.5816829896969776
+rho=-0.6672639603181081
+v0=1e-08
+a=2.6318638369984684
+b=3.3453341675209582
+lmbda=0.006057936677013043

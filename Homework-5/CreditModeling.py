@@ -18,6 +18,11 @@ import inspyred
 from inspyred import ec
 from random import Random
 from scipy.optimize import fmin_tnc
+import scipy.stats as st
+norminv = st.distributions.norm.ppf
+norm = st.distributions.norm.cdf
+import numpy.linalg
+import matplotlib.pyplot as plt
 
 class Option:
     def __init__(self, strike, maturity, bid, ask, underlying, typ, vol = 0):
@@ -31,7 +36,6 @@ class Option:
         
     def getMidPrice(self):
         return 0.5*(self.bid + self.ask)        
-        #return 0.5*(self.bid + self.ask)
     
     def dump(self):
         return str(self.bid) +"," + str(self.ask) + "," +  str(self.strike) +"," + str(self.maturity) + "," + str(self.underlying) + "," + str(self.typ) + "," + str(self.vol)
@@ -52,10 +56,10 @@ def readTDAmeritradeData(fileName, max_chain_size = 1024):
       raise
     
     W = []    
-    #idxs = np.arange(len(data))  
+ 
     for i in range(len(data)):
-      if (i % 100 ==0):
-        print (i)
+      #if (i % 100 ==0):
+        #print (i)
       tau = (data[i][1])/365.0 # there are approx 260 trading days in a year
       if data[i][11] != 0: # remove zero bids
         o = Option(float(data[i][16]),tau,float(data[i][11]),float(data[i][13]), float(data[i][0]),'C',float(data[i][7]))
@@ -169,36 +173,146 @@ def Error_FunctionD(candidates, args):
                 r = W*(HG - HOV_e)
                 RMSE = sqrt(dot(r,r)/len(r))
                 fitness.append(RMSE)
-        #print RMSE
         return fitness
     
 def my_terminator(population, num_generations, num_evaluations, args):
     best=max(population)
-    #x = best.candidate
     tol = args['tolerance']
     if (best.fitness <=tol):
      print ("Exiting after: " + str(num_evaluations) + " evalutions")
     return ((num_evaluations >=  args['max_evaluations']) or (best.fitness <= tol))
 
-def Generate_Function(random, args):# set a,b,lmbda per Professor
+def Generate_Function(random, args):# set a,b,lmbda as per Professor
     return [random.uniform(0.0, 5.0),random.uniform(0.0, 1.0), 
             random.uniform(0.0, 1.0),random.uniform(-1.0, 1.0),
             random.uniform(0.0, 1.0),random.uniform(-1.0, 5.0),#a=(-1,5)
             random.uniform(0.0, 5.0),random.uniform(0.0, 5.0)]#b=(0,5),lmbda=(0,5)
 
+def defaultTimes(hazardRates, correlation, samples):
+
+    if (hazardRates < 0).any() or (hazardRates > 1).any():
+        raise ValueError('hazard rates can not be negative or larger than 1')
+    if (samples < 0).any() or (samples > 1).any():
+        raise ValueError('samples can not be negative or larger than 1')
+    if (np.abs(correlation) > 1).any():
+        raise ValueError('absolute value of correlation can not be larger than 1')
+    if (correlation.diagonal() != 1).any():
+        raise ValueError('correlation matrix must have all 1s in diagnal')
+        
+    ch = np.linalg.cholesky(correlation).T
+    z = np.dot( samples, ch )
+    x = norm(z)
+    
+    default_times = -np.log(1-x)/hazardRates
+
+    return default_times
+
+def portfolioLosses(notionals, maturities, recoveryRates, hazardRates, correlation, samples, r):
+    
+    if (hazardRates < 0).any() or (hazardRates > 1).any():
+        raise ValueError('hazard rates can not be negative or larger than 1')
+    if (samples < 0).any() or (samples > 1).any():
+        raise ValueError('samples can not be negative or larger than 1')
+    if (np.abs(correlation) > 1).any():
+        raise ValueError('absolute value of correlation can not be larger than 1')
+    if (correlation.diagonal() != 1).any():
+        raise ValueError('correlation matrix must have all 1s in diagnal')
+    if (notionals < 0).any():
+        raise ValueError('notionals can not be negative')
+    if (maturities < 0).any():
+        raise ValueError('maturities can not be negative')
+    if (recoveryRates < 0).any() or (recoveryRates > 1).any():
+        raise ValueError('hazard rates can not be negative or larger than 1')        
+
+    tau = defaultTimes(hazardRates, correlation, samples)
+
+
+    V = (1-recoveryRates)*np.exp(-r*np.where(tau < maturities, tau, maturities))*notionals
+    losses = V
+    losses[ tau > maturities] = 0
+    
+    summ_losses =[sum(scenario) for scenario in losses]
+    expected_loss = np.mean(summ_losses)
+    return expected_loss
+
 
 if __name__ == '__main__':
-        
+    np.set_printoptions(precision=3)    
+
+# Code to test Question 2
+    print('Question 2:')
+    M = 10
+    N = 5
+    hazardRates = np.random.rand(N)
+    corr = 0.6
+    correlation = corr*np.ones((N,N))
+    np.fill_diagonal(correlation, 1)
+    samples = np.random.rand(M,N)
+
+    print('Inputs:')
+    print('Hazard rates: {:}'.format(hazardRates))
+    print('Correlation matrix: {:}'.format(correlation))
+    print('samples:\n{:}\n'.format(samples))
+   
+    
+    def_times = defaultTimes(hazardRates, correlation, samples)
+    print('default times:\n{:}\n'.format(def_times))
+# Code to test Question 2 - end
+
+# Code to test Question 3
+
+    print('Question 3:')
+    recoveryRates  = np.array([0.1, 0.3, 0.15, 0.4, 0.4, 0.4])
+    hazardRates  = np.array([0.3, 0.03, 0.05, 0.1, 0.0010, 0.9])
+    notionals = np.array([1000000.0, 1000000.0, 1000000.0, 1000000.0, 1000000.0, 1000000.0])
+    rho = 0.4
+    r = 0.01
+    M = 10000 #simulation paths
+    N = len(recoveryRates)#6 #number of instruments
+    T = 3
+    maturities = np.array([T, T, T, T, T, T])
+
+    correlation = rho*np.ones((N,N))
+    np.fill_diagonal(correlation, 1)
+    samples = np.random.rand(M,N)
+    
+    print('Inputs:')
+    print('Notionals: {:}'.format(notionals))
+    print('Recovery rates: {:}'.format(recoveryRates))
+    print('Hazard rates: {:}'.format(hazardRates))
+    print('Maturities: {:}'.format(maturities))
+    print('rho: {:}'.format(rho))
+    print('r: {:}\n'.format(r))
+
+    
+    expected_loss = portfolioLosses(notionals, maturities, recoveryRates, hazardRates, correlation, samples, r)
+    print('Expected loss: $ {:.2f}'.format(expected_loss))
+
+    # this is to find out how correlation affects loss
+    exp_lss = []
+    rhos = np.linspace(0.0, 1.0, num=100, endpoint=False)
+
+    for rh in rhos:
+        correlation = rh*np.ones((N,N))
+        np.fill_diagonal(correlation, 1)
+        exp_lss.append(portfolioLosses(notionals, maturities, recoveryRates, hazardRates, correlation, samples, r))
+    
+    plt.plot(rhos,exp_lss,)    
+    plt.grid(True)    
+    plt.xlabel('Correlation')
+    plt.ylabel('Expected Loss, $M')
+    plt.show()
+    
+# Code to test Question 3 - end    
+
+# Implementation code for Question 1
+    print('Question 1:')
+    
     nInt = 32
     iMethod = 'DEA'
     bIncorporateNLContraint = False
     r0 = 0.0002
     chain = readTDAmeritradeData('data/SPX_08082013.csv', nInt)
-    
-    #p0 = [5.76145232379, 0.393696857573, 0.99999999,-0.686387364593,0.685888435264]
-    #print Error_Function(p0)
-    
-    
     
     eps = 1e-8
     # kappa, ... ,a,b, lmbda
@@ -206,19 +320,17 @@ if __name__ == '__main__':
     u = [5.0-eps,1.0-eps,1.0-eps,1.0-eps,1.0-eps, 5.0-eps, 5.0-eps, 5.0-eps]
     
     if bIncorporateNLContraint:
-       u[0] = 2.0 * u[0]* u[1] - l[2]*l[2]
+        u[0] = 2.0 * u[0]* u[1] - l[2]*l[2]
        
     prng = Random()
-    #prng.seed(0)  
-    
     
     if iMethod == 'DEA':
-     ea = inspyred.ec.DEA(prng)
+      ea = inspyred.ec.DEA(prng)
     elif iMethod == 'SA':
-     ea = inspyred.ec.SA(prng)
+      ea = inspyred.ec.SA(prng)
     else:
-     print ('Error: must specify inspyred method as DEA or SA')
-     sys.exit()
+      print ('Error: must specify inspyred method as DEA or SA')
+      sys.exit()
     
     ea.terminator = my_terminator
     final_pop = ea.evolve(generator=Generate_Function,
@@ -234,18 +346,17 @@ if __name__ == '__main__':
     print('Best Solution: \n{0}'.format(str(best)))
     xmin = best.candidate
     
-    #print Error_Function(xmin)
     bounds_0 = [(l[0],u[0]),(l[1],u[1]),(l[2],u[2]),(l[3],u[3]),(l[4],u[4]),(l[5],u[5]),(l[6],u[6]),(l[7],u[7])]
     
     opt=fmin_tnc(Error_Function, xmin, approx_grad=True, bounds=bounds_0, epsilon=1e-04, scale=None, \
-                 offset=None, messages=15, maxCGit=-1, maxfun=1000, eta=-1, stepmx=0, accuracy=0, \
-                 fmin=0, ftol=2.22e-16, xtol=2.22e-16, pgtol=-1, rescale=-1, disp=5)
+                  offset=None, messages=15, maxCGit=-1, maxfun=1000, eta=-1, stepmx=0, accuracy=0, \
+                  fmin=0, ftol=2.22e-16, xtol=2.22e-16, pgtol=-1, rescale=-1, disp=5)
     print (opt[0])
     print (opt[1])
     print ("Number of options", len(chain))
     print ("Final RMSE Value: ", RMSE)
     if bIncorporateNLContraint:
-       opt[0][0] = (opt[0][0] + opt[0][2]*opt[0][2])/(2.0*opt[0][1]) 
+        opt[0][0] = (opt[0][0] + opt[0][2]*opt[0][2])/(2.0*opt[0][1]) 
     
     print ("kappa=" + str(opt[0][0]))
     print ("theta=" + str(opt[0][1]))
@@ -256,3 +367,6 @@ if __name__ == '__main__':
     print ("a=" + str(opt[0][5]))
     print ("b=" + str(opt[0][6]))
     print ("lmbda=" + str(opt[0][7]))
+    print('\n')
+    
+# Code for Question 1 - end
